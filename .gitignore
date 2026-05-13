@@ -1,0 +1,4 @@
+.baileys_auth  
+dist
+node_modules
+.env
