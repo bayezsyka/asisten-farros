@@ -39,37 +39,50 @@ export async function getClassroomPendingAssignments(): Promise<Assignment[]> {
       const submissions = submissionsRes.data.studentSubmissions ?? [];
       const mySubmission = submissions[0]; // Akun siswa biasanya hanya melihat miliknya sendiri
 
-      let status = "belum diketahui";
-      let isPending = true;
+      let isEligible = false;
+      let statusLabel = "belum diketahui";
 
       if (mySubmission) {
         const state = mySubmission.state;
 
-        if (state === "TURNED_IN") {
-          isPending = false;
-          status = "sudah dikumpulkan";
-        } else if (state === "RETURNED") {
-          isPending = true;
-          status = "dikembalikan / perlu dicek ulang";
-        } else if (state === "CREATED" || state === "RECLAIMED_BY_STUDENT") {
-          isPending = true;
-          status = "belum dikumpulkan";
-        } else {
-          status = state?.toLowerCase() ?? "belum diketahui";
+        // Hanya status CREATED dan RECLAIMED_BY_STUDENT yang dianggap pending utama
+        if (state === "CREATED" || state === "RECLAIMED_BY_STUDENT") {
+          isEligible = true;
+          statusLabel = "belum dikumpulkan";
         }
+        // TURNED_IN dan RETURNED diabaikan (isEligible tetap false)
+      } else {
+        // Fallback jika student submission tidak ditemukan
+        isEligible = true;
+        statusLabel = "belum diketahui";
       }
 
-      if (isPending) {
-        allPending.push({
-          id: `gc-${cw.id}`,
-          provider: "google_classroom",
-          courseName: course.name,
-          title: cw.title,
-          dueAt: convertClassroomDateToISO(cw.dueDate, cw.dueTime),
-          status: status,
-          isPending: true,
-          link: cw.alternateLink ?? undefined,
-        });
+      if (isEligible) {
+        const dueAt = convertClassroomDateToISO(cw.dueDate, cw.dueTime);
+
+        // Filter waktu: sembunyikan tugas yang sudah lewat lebih dari 60 hari
+        if (dueAt) {
+          const dueDate = new Date(dueAt);
+          const now = new Date();
+          const diffDays = (now.getTime() - dueDate.getTime()) / (1000 * 3600 * 24);
+
+          if (diffDays > 60) {
+            isEligible = false;
+          }
+        }
+
+        if (isEligible) {
+          allPending.push({
+            id: `gc-${cw.id}`,
+            provider: "google_classroom",
+            courseName: course.name,
+            title: cw.title,
+            dueAt,
+            status: statusLabel,
+            isPending: true,
+            link: cw.alternateLink ?? undefined,
+          });
+        }
       }
     }
   }
