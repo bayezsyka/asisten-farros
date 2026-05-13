@@ -3,10 +3,9 @@ import { fetchPendingAssignments } from "../services/assignment-api-client.js";
 
 export async function handleCommand(rawText: string): Promise<string | null> {
   const text = rawText.trim().toLowerCase();
-  const [rawCommand] = text.split(/\s+/);
 
-  // Normalisasi command: hilangkan slash di awal jika ada
-  const command = rawCommand.startsWith("/") ? rawCommand.slice(1) : rawCommand;
+  // Normalisasi command: hilangkan slash di awal jika ada, gunakan seluruh teks
+  const command = text.startsWith("/") ? text.slice(1) : text;
 
   switch (command) {
     case "ping":
