@@ -1,5 +1,8 @@
 import { formatAssignmentsMessage } from "../services/formatter-service.js";
-import { fetchPendingAssignments } from "../services/assignment-api-client.js";
+import {
+  fetchClassroomPendingAssignments,
+  fetchPendingAssignments,
+} from "../services/assignment-api-client.js";
 
 export async function handleCommand(rawText: string): Promise<string | null> {
   const text = rawText.trim().toLowerCase();
@@ -16,6 +19,7 @@ export async function handleCommand(rawText: string): Promise<string | null> {
         "- ping",
         "- help",
         "- tugas",
+        "- tugas classroom",
         "- hubungkan classroom",
       ].join("\n");
     case "hubungkan classroom": {
@@ -34,6 +38,23 @@ export async function handleCommand(rawText: string): Promise<string | null> {
           return "Maaf, format data tugas belum sesuai.";
         }
         return "Maaf, data tugas belum bisa diambil. Coba lagi sebentar lagi.";
+      }
+    }
+    case "tugas classroom": {
+      try {
+        const pendingAssignments = await fetchClassroomPendingAssignments();
+        if (pendingAssignments.length === 0) {
+          return "Belum ada tugas Classroom yang tercatat belum selesai.";
+        }
+        return formatAssignmentsMessage(pendingAssignments);
+      } catch (error) {
+        if (error instanceof Error && error.message === "UNAUTHORIZED") {
+          return "Classroom belum terhubung. Ketik: hubungkan classroom";
+        }
+        if (error instanceof Error && error.message.includes("is not an array")) {
+          return "Maaf, format data tugas Classroom belum sesuai.";
+        }
+        return "Maaf, tugas Classroom belum bisa diambil. Coba lagi sebentar lagi.";
       }
     }
     default:
