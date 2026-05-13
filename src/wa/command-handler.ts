@@ -1,7 +1,11 @@
-import { formatAssignmentsMessage } from "../services/formatter-service.js";
+import {
+  formatAssignmentsMessage,
+  formatSyncTime,
+} from "../services/formatter-service.js";
 import {
   fetchClassroomPendingAssignments,
   fetchPendingAssignments,
+  syncClassroomAssignments,
 } from "../services/assignment-api-client.js";
 
 export async function handleCommand(rawText: string): Promise<string | null> {
@@ -20,6 +24,7 @@ export async function handleCommand(rawText: string): Promise<string | null> {
         "- help",
         "- tugas",
         "- tugas classroom",
+        "- sync classroom",
         "- hubungkan classroom",
       ].join("\n");
     case "hubungkan classroom": {
@@ -51,10 +56,28 @@ export async function handleCommand(rawText: string): Promise<string | null> {
         if (error instanceof Error && error.message === "UNAUTHORIZED") {
           return "Classroom belum terhubung. Ketik: hubungkan classroom";
         }
+        if (error instanceof Error && error.message.includes("status 409")) {
+          return "Data Classroom belum disinkronkan. Ketik: sync classroom";
+        }
         if (error instanceof Error && error.message.includes("is not an array")) {
           return "Maaf, format data tugas Classroom belum sesuai.";
         }
         return "Maaf, tugas Classroom belum bisa diambil. Coba lagi sebentar lagi.";
+      }
+    }
+    case "sync classroom": {
+      try {
+        const result = await syncClassroomAssignments();
+        return [
+          "Sinkronisasi Classroom selesai.",
+          `Jumlah tugas belum selesai: ${result.count}`,
+          `Waktu sinkron: ${formatSyncTime(result.syncedAt)}`,
+        ].join("\n");
+      } catch (error) {
+        if (error instanceof Error && error.message === "UNAUTHORIZED") {
+          return "Classroom belum terhubung. Ketik: hubungkan classroom";
+        }
+        return "Maaf, sinkronisasi Classroom gagal. Coba lagi sebentar lagi.";
       }
     }
     default:

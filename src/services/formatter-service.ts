@@ -5,7 +5,7 @@ const providerLabels: Record<AssignmentProvider, string> = {
   microsoft_teams: "Microsoft Teams",
 };
 
-function formatDueAt(dueAt: string | null): string {
+export function formatDueAt(dueAt: string | null): string {
   if (!dueAt) {
     return "belum ditentukan";
   }
@@ -33,6 +33,10 @@ function formatDueAt(dueAt: string | null): string {
     .replace(":", ".");
 
   return `${datePart}, ${timePart}`;
+}
+
+export function formatSyncTime(syncedAt: string): string {
+  return formatDueAt(syncedAt);
 }
 
 export function sortPendingAssignments(assignments: Assignment[]): Assignment[] {

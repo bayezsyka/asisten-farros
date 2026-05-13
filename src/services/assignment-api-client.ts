@@ -41,3 +41,21 @@ export async function fetchClassroomPendingAssignments(): Promise<Assignment[]> 
 
   return data as Assignment[];
 }
+export async function syncClassroomAssignments(): Promise<{ syncedAt: string; count: number }> {
+  const baseUrl = process.env.ASISTEN_FARROS_API_BASE_URL ?? "http://127.0.0.1:3007";
+  const url = `${baseUrl}/assignments/classroom/sync`;
+
+  const response = await fetch(url, {
+    method: "POST",
+  });
+
+  if (response.status === 401) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  if (!response.ok) {
+    throw new Error(`API returned status ${response.status}`);
+  }
+
+  return await response.json();
+}
