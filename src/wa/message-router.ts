@@ -38,7 +38,7 @@ export async function routeIncomingMessage(
       return;
     }
 
-    const response = await handleCommand(text);
+    const response = await handleCommand(text, remoteJid);
 
     if (!response) {
       return;

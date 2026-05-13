@@ -2,8 +2,12 @@ import "dotenv/config";
 
 import { createBaileysClient } from "./wa/baileys-client.js";
 import { startServer } from "./api/server.js";
+import { initScheduler } from "./services/reminder-scheduler-service.js";
 
 async function main(): Promise<void> {
+  // Inisialisasi scheduler (auto sync & reminder)
+  initScheduler();
+
   // Jalankan bot Baileys
   await createBaileysClient({
     authDir: process.env.BAILEYS_AUTH_DIR ?? ".baileys_auth",

@@ -11,6 +11,12 @@ import qrcode from "qrcode-terminal";
 
 import { extractMessageText, routeIncomingMessage } from "./message-router.js";
 
+let socketInstance: WASocket | null = null;
+
+export function getWASocket(): WASocket | null {
+  return socketInstance;
+}
+
 type CreateBaileysClientOptions = {
   authDir: string;
   botName: string;
@@ -45,6 +51,8 @@ export async function createBaileysClient(
     logger,
     markOnlineOnConnect: false,
   });
+
+  socketInstance = socket;
 
   socket.ev.on("creds.update", saveCreds);
 

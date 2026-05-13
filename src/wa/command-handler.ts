@@ -7,8 +7,12 @@ import {
   fetchPendingAssignments,
   syncClassroomAssignments,
 } from "../services/assignment-api-client.js";
+import {
+  loadReminderConfig,
+  saveReminderConfig,
+} from "../services/reminder-config-service.js";
 
-export async function handleCommand(rawText: string): Promise<string | null> {
+export async function handleCommand(rawText: string, remoteJid: string): Promise<string | null> {
   const text = rawText.trim().toLowerCase();
 
   // Normalisasi command: hilangkan slash di awal jika ada, gunakan seluruh teks
@@ -26,6 +30,9 @@ export async function handleCommand(rawText: string): Promise<string | null> {
         "- tugas classroom",
         "- sync classroom",
         "- hubungkan classroom",
+        "- aktifkan reminder",
+        "- matikan reminder",
+        "- status reminder",
       ].join("\n");
     case "hubungkan classroom": {
       const publicUrl = process.env.APP_PUBLIC_URL ?? "http://127.0.0.1:3007";
@@ -79,6 +86,31 @@ export async function handleCommand(rawText: string): Promise<string | null> {
         }
         return "Maaf, sinkronisasi Classroom gagal. Coba lagi sebentar lagi.";
       }
+    }
+    case "aktifkan reminder": {
+      await saveReminderConfig({
+        enabled: true,
+        chatJid: remoteJid,
+      });
+      return [
+        "Reminder harian aktif.",
+        "Aku akan mengingatkan tugas yang belum selesai setiap hari jam 17.00 WIB.",
+      ].join("\n");
+    }
+    case "matikan reminder": {
+      await saveReminderConfig({ enabled: false });
+      return "Reminder harian dimatikan.";
+    }
+    case "status reminder": {
+      const config = await loadReminderConfig();
+      if (config.enabled) {
+        return [
+          "Reminder aktif.",
+          `Jam reminder: ${config.reminderTime} WIB`,
+          `Auto sync: ${config.autoSyncTime} WIB`,
+        ].join("\n");
+      }
+      return "Reminder belum aktif. Ketik: aktifkan reminder";
     }
     default:
       return null;
