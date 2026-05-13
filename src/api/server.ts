@@ -1,6 +1,7 @@
 import express from "express";
 import healthRoute from "./routes/health-route.js";
 import assignmentRoute from "./routes/assignment-route.js";
+import authGoogleRoute from "./routes/auth-google-route.js";
 
 export function createServer() {
   const app = express();
@@ -10,6 +11,7 @@ export function createServer() {
   // Routes
   app.use("/health", healthRoute);
   app.use("/assignments", assignmentRoute);
+  app.use("/auth/google", authGoogleRoute);
 
   return app;
 }

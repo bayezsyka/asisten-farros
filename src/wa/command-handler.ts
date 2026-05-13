@@ -12,7 +12,20 @@ export async function handleCommand(rawText: string): Promise<string | null> {
     case "ping":
       return "pong";
     case "help":
-      return ["Daftar command:", "- ping", "- help", "- tugas"].join("\n");
+      return [
+        "Daftar command:",
+        "- ping",
+        "- help",
+        "- tugas",
+        "- hubungkan classroom",
+      ].join("\n");
+    case "hubungkan classroom": {
+      const publicUrl = process.env.APP_PUBLIC_URL ?? "http://127.0.0.1:3007";
+      return [
+        "Silakan hubungkan Google Classroom lewat link ini:",
+        `${publicUrl}/auth/google`,
+      ].join("\n");
+    }
     case "tugas": {
       try {
         const pendingAssignments = await fetchPendingAssignments();
