@@ -1,6 +1,7 @@
 import type { WAMessage } from "@whiskeysockets/baileys";
 
 import { handleCommand } from "./command-handler.js";
+import { handleFinanceMessage } from "./financeHandler.js";
 
 export type ReplyFn = (jid: string, text: string) => Promise<void>;
 
@@ -38,6 +39,14 @@ export async function routeIncomingMessage(
       return;
     }
 
+    // Try finance handler first
+    const financeResponse = await handleFinanceMessage(text);
+    if (financeResponse) {
+      await reply(remoteJid, financeResponse);
+      return;
+    }
+
+    // Fallback to command handler
     const response = await handleCommand(text, remoteJid);
 
     if (!response) {
