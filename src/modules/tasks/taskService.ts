@@ -1,5 +1,6 @@
 import { Assignment, TaskProvider, TaskCache } from "./taskTypes.js";
 import { saveTasksCache } from "./taskCacheService.js";
+import { formatTaskDueAt } from "../../core/date.js";
 
 const providers: TaskProvider[] = [];
 
@@ -52,18 +53,11 @@ export function formatAssignmentsText(cache: TaskCache, isStale: boolean = false
   let text = `📚 *Daftar Tugas Pending (${assignments.length})*\n\n`;
 
   assignments.forEach((a, i) => {
-    let dueStr = "Tanpa tenggat";
+    let dueStr = formatTaskDueAt(a.dueAt, a.hasTime ?? true);
+    
     if (a.dueAt) {
       const date = new Date(a.dueAt);
       const isPast = date < new Date();
-      dueStr = date.toLocaleDateString("id-ID", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
       if (isPast) {
         dueStr = `⚠️ *TERLAMBAT* (${dueStr})`;
       }

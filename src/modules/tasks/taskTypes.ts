@@ -4,6 +4,7 @@ export interface Assignment {
   courseName: string;
   title: string;
   dueAt: string | null;
+  hasTime?: boolean;
   status: string;
   isPending: boolean;
   link?: string;

@@ -1,6 +1,7 @@
 import { Assignment, TaskProvider } from "../tasks/taskTypes.js";
 import { getAuthorizedClassroomClient } from "./classroomAuthService.js";
 import { classroom_v1 } from "googleapis";
+import { buildUtcDateFromClassroomDue } from "../../core/date.js";
 
 export class ClassroomTaskProvider implements TaskProvider {
   name = "google_classroom";
@@ -53,12 +54,13 @@ export class ClassroomTaskProvider implements TaskProvider {
         }
 
         if (isEligible) {
-          const dueAt = this.convertClassroomDateToISO(cw.dueDate, cw.dueTime);
+          const dueAtDate = buildUtcDateFromClassroomDue(cw.dueDate, cw.dueTime);
+          const dueAt = dueAtDate ? dueAtDate.toISOString() : null;
+          const hasTime = cw.dueTime !== undefined;
 
-          if (dueAt) {
-            const dueDate = new Date(dueAt);
+          if (dueAtDate) {
             const now = new Date();
-            const diffDays = (now.getTime() - dueDate.getTime()) / (1000 * 3600 * 24);
+            const diffDays = (now.getTime() - dueAtDate.getTime()) / (1000 * 3600 * 24);
 
             if (diffDays > 60) {
               isEligible = false;
@@ -72,6 +74,7 @@ export class ClassroomTaskProvider implements TaskProvider {
               courseName: course.name,
               title: cw.title,
               dueAt,
+              hasTime,
               status: statusLabel,
               isPending: true,
               link: cw.alternateLink ?? undefined,
@@ -82,20 +85,5 @@ export class ClassroomTaskProvider implements TaskProvider {
     }
 
     return allPending;
-  }
-
-  private convertClassroomDateToISO(
-    date?: classroom_v1.Schema$Date,
-    time?: classroom_v1.Schema$TimeOfDay,
-  ): string | null {
-    if (!date || !date.year || !date.month || !date.day) {
-      return null;
-    }
-
-    const hours = time?.hours ?? 23;
-    const minutes = time?.minutes ?? 59;
-
-    const d = new Date(date.year, date.month - 1, date.day, hours, minutes);
-    return d.toISOString();
   }
 }
