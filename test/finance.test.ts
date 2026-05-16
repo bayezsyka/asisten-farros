@@ -80,7 +80,7 @@ describe('Expense Classifier', () => {
 describe('Finance Handler', () => {
   it('should handle finance message and format the response', async () => {
     vi.spyOn(financeService, 'saveExpense').mockResolvedValue(true);
-    const response = await handleFinanceMessage("beli kopi 18k");
+    const response = await handleFinanceMessage("beli kopi 18k", "6281234567890@s.whatsapp.net");
     expect(response).toContain("Tercatat.");
     expect(response).toContain("Deskripsi: beli kopi");
     expect(response).toContain("Nominal: Rp18.000");
@@ -89,7 +89,7 @@ describe('Finance Handler', () => {
   });
 
   it('should return null for non-finance message', async () => {
-    const response = await handleFinanceMessage("ping");
+    const response = await handleFinanceMessage("ping", "6281234567890@s.whatsapp.net");
     expect(response).toBeNull();
   });
 });

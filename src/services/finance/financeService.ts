@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import WebSocket from "ws";
 import { ClassifiedExpense } from "../../types/finance.js";
 
 const supabaseUrl = process.env.SUPABASE_URL || "";
@@ -6,7 +7,11 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 export const supabase =
   supabaseUrl && supabaseKey
-    ? createClient(supabaseUrl, supabaseKey)
+    ? createClient(supabaseUrl, supabaseKey, {
+        realtime: {
+          transport: WebSocket as any
+        }
+      })
     : null;
 
 type VerifiedWhatsappLink = {
