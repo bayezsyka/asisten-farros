@@ -1,7 +1,9 @@
 import express from "express";
-import healthRoute from "./routes/health-route.js";
-import assignmentRoute from "./routes/assignment-route.js";
-import authGoogleRoute from "./routes/auth-google-route.js";
+import healthRoute from "./routes/healthRoutes.js";
+import assignmentRoute from "./routes/assignmentRoutes.js";
+import classroomRoute from "./routes/classroomRoutes.js";
+import { env } from "../config/env.js";
+import { logger } from "../core/logger.js";
 
 export function createServer() {
   const app = express();
@@ -11,15 +13,16 @@ export function createServer() {
   // Routes
   app.use("/health", healthRoute);
   app.use("/assignments", assignmentRoute);
-  app.use("/auth/google", authGoogleRoute);
+  app.use("/auth/google", classroomRoute);
 
   return app;
 }
 
-export function startServer(port: number) {
+export function startServer() {
   const app = createServer();
+  const port = env.API_PORT;
 
   return app.listen(port, "127.0.0.1", () => {
-    console.log(`API Asisten Farros hidup di http://127.0.0.1:${port}`);
+    logger.info(`API Server running on http://127.0.0.1:${port}`);
   });
 }

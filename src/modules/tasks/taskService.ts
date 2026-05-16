@@ -1,0 +1,74 @@
+import { Assignment, TaskProvider } from "./taskTypes.js";
+
+const providers: TaskProvider[] = [];
+
+export function registerTaskProvider(provider: TaskProvider) {
+  providers.push(provider);
+}
+
+export async function getAllPendingTasks(): Promise<Assignment[]> {
+  let allTasks: Assignment[] = [];
+  
+  for (const provider of providers) {
+    try {
+      const tasks = await provider.getPendingTasks();
+      allTasks = allTasks.concat(tasks);
+    } catch (error: any) {
+      if (error.message !== "UNAUTHORIZED") {
+        console.error(`Error fetching tasks from ${provider.name}:`, error);
+      }
+    }
+  }
+
+  return sortPendingAssignments(allTasks);
+}
+
+export function sortPendingAssignments(assignments: Assignment[]): Assignment[] {
+  return assignments.sort((a, b) => {
+    if (!a.dueAt && !b.dueAt) return 0;
+    if (!a.dueAt) return 1;
+    if (!b.dueAt) return -1;
+
+    const dateA = new Date(a.dueAt);
+    const dateB = new Date(b.dueAt);
+    return dateA.getTime() - dateB.getTime();
+  });
+}
+
+export function formatAssignmentsText(assignments: Assignment[]): string {
+  if (assignments.length === 0) {
+    return "✅ Asik, tidak ada tugas yang belum dikerjakan!";
+  }
+
+  let text = `📚 *Daftar Tugas Pending (${assignments.length})*\n\n`;
+
+  assignments.forEach((a, i) => {
+    let dueStr = "Tanpa tenggat";
+    if (a.dueAt) {
+      const date = new Date(a.dueAt);
+      const isPast = date < new Date();
+      dueStr = date.toLocaleDateString("id-ID", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      if (isPast) {
+        dueStr = `⚠️ *TERLAMBAT* (${dueStr})`;
+      }
+    }
+
+    text += `${i + 1}. *${a.courseName}*\n`;
+    text += `   📝 ${a.title}\n`;
+    text += `   ⏰ ${dueStr}\n`;
+    text += `   📌 Status: ${a.status}\n`;
+    if (a.link) {
+      text += `   🔗 Link: ${a.link}\n`;
+    }
+    text += "\n";
+  });
+
+  return text.trim();
+}

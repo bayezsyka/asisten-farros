@@ -1,15 +1,16 @@
 {
-  "name": "laras-tugas",
+  "name": "asisten-farros",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Bot WhatsApp Baileys sederhana untuk Laras Tugas.",
+  "description": "Asisten WhatsApp pribadi Farros untuk tugas, reminder, dan pencatatan keuangan.",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc --project tsconfig.json",
     "start": "node dist/index.js",
-    "typecheck": "tsc --project tsconfig.json --noEmit"
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "vitest run"
   },
   "engines": {
     "node": ">=20.0.0"
