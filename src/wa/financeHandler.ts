@@ -4,29 +4,27 @@ import { saveExpense } from "../services/finance/financeService.js";
 
 /**
  * Handles finance-related messages.
- * Returns true if the message was handled as an expense, false otherwise.
+ * Returns reply text if handled as an expense, null otherwise.
  */
-export async function handleFinanceMessage(text: string): Promise<string | null> {
-  // 1. Try to parse the text as an expense
+export async function handleFinanceMessage(
+  text: string,
+  senderJid: string,
+): Promise<string | null> {
   const parsed = parseExpense(text);
+
   if (!parsed) {
-    return null; // Not an expense message
+    return null;
   }
 
-  // 2. Classify the parsed expense
   const classified = classifyExpense(parsed);
-
-  // 3. Save to database
-  const success = await saveExpense(classified);
+  const success = await saveExpense(classified, senderJid);
 
   if (!success) {
     return "Maaf, transaksi belum berhasil disimpan. Coba kirim ulang sebentar lagi.";
   }
 
-  // Format amount
-  const formattedAmount = new Intl.NumberFormat('id-ID').format(classified.amount);
+  const formattedAmount = new Intl.NumberFormat("id-ID").format(classified.amount);
 
-  // 4. Return confirmation message
   return `Tercatat.
 
 Deskripsi: ${classified.description}

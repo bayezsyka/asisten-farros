@@ -63,6 +63,10 @@ export async function createBaileysClient(
   });
 
   socket.ev.on("messages.upsert", async ({ messages, type }) => {
+    if (type !== "notify") {
+      return;
+    }
+
     for (const message of messages) {
       const text = extractMessageText(message);
 
@@ -115,3 +119,4 @@ async function handleConnectionUpdate(
 
   console.error("Sesi WhatsApp logout. Hapus auth state lalu login ulang.");
 }
+

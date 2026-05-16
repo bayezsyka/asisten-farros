@@ -40,7 +40,7 @@ export async function routeIncomingMessage(
     }
 
     // Try finance handler first
-    const financeResponse = await handleFinanceMessage(text);
+    const financeResponse = await handleFinanceMessage(text, remoteJid);
     if (financeResponse) {
       await reply(remoteJid, financeResponse);
       return;
@@ -58,3 +58,4 @@ export async function routeIncomingMessage(
     console.error("Gagal memproses pesan masuk:", error);
   }
 }
+
