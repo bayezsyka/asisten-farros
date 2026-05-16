@@ -17,11 +17,14 @@ export async function generateDailyReport(workspaceId: string): Promise<string> 
 
   const name = workspace?.name || "Farros";
 
-  // Get today's expenses
-  const today = new Date().toISOString().slice(0, 10);
+  // Get today's date in Asia/Jakarta (UTC+7)
+  const now = new Date();
+  const jktOffset = 7 * 60 * 60 * 1000;
+  const today = new Date(now.getTime() + jktOffset).toISOString().slice(0, 10);
+
   const { data: expenses, error } = await supabase
     .from('expenses')
-    .select('description, amount')
+    .select('description, subject, amount')
     .eq('workspace_id', workspaceId)
     .eq('expense_date', today);
 
@@ -33,7 +36,8 @@ export async function generateDailyReport(workspaceId: string): Promise<string> 
 
   let report = `${name} hari ini menghabiskan uang sebanyak: Rp ${formatCurrency(total)}.\n\nBerikut adalah rinciannya:\n`;
   expenses.forEach((exp: any, index: number) => {
-    report += `${index + 1}. ${exp.description} Rp ${formatCurrency(Number(exp.amount) || 0)}\n`;
+    const desc = exp.description || exp.subject || "Tanpa keterangan";
+    report += `${index + 1}. ${desc} Rp ${formatCurrency(Number(exp.amount) || 0)}\n`;
   });
 
   return report.trim();
