@@ -27,4 +27,5 @@ export const env = {
   OWNER_WA_NUMBER: requireEnv("OWNER_WA_NUMBER", "6287721031021"),
   OWNER_DISPLAY_NAME: requireEnv("OWNER_DISPLAY_NAME", "Farros"),
   TZ: requireEnv("TZ", "Asia/Jakarta"),
+  TASK_CACHE_TTL_MINUTES: parseInt(requireEnv("TASK_CACHE_TTL_MINUTES", "360"), 10),
 };

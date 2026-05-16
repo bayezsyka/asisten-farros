@@ -13,3 +13,10 @@ export interface TaskProvider {
   name: string;
   getPendingTasks(): Promise<Assignment[]>;
 }
+
+export interface TaskCache {
+  items: Assignment[];
+  syncedAt: string;
+  source: string;
+  owner?: string;
+}

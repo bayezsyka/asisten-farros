@@ -1,19 +1,22 @@
 import { MessageContext, RouteResult } from "../../infra/whatsapp/whatsappTypes.js";
-import { getAllPendingTasks, formatAssignmentsText } from "./taskService.js";
+import { formatAssignmentsText } from "./taskService.js";
+import { getCachedTasks, isCacheFresh } from "./taskCacheService.js";
 
 export async function taskMessageHandler(ctx: MessageContext): Promise<RouteResult> {
   const text = ctx.normalizedText;
 
   if (text === "tugas") {
     try {
-      const assignments = await getAllPendingTasks();
-      const replyText = formatAssignmentsText(assignments);
+      const cache = await getCachedTasks();
+      if (!cache) {
+        return { handled: true, reply: "Data tugas belum tersedia. Ketik 'sync classroom' untuk menyinkronkan." };
+      }
+
+      const isFresh = isCacheFresh(cache);
+      const replyText = formatAssignmentsText(cache, !isFresh);
       return { handled: true, reply: replyText };
     } catch (error: any) {
-      if (error.message === "UNAUTHORIZED") {
-        return { handled: true, reply: "Google Classroom belum dihubungkan. Ketik 'hubungkan classroom' untuk menghubungkan akun Google." };
-      }
-      return { handled: true, reply: "Gagal mengambil daftar tugas." };
+      return { handled: true, reply: "Gagal mengambil daftar tugas dari cache." };
     }
   }
 

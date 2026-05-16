@@ -3,4 +3,6 @@ dist
 node_modules
 .env
 data/
+.data/
+.cache/
 *.zip

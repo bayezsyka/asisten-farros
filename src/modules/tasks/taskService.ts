@@ -1,4 +1,5 @@
-import { Assignment, TaskProvider } from "./taskTypes.js";
+import { Assignment, TaskProvider, TaskCache } from "./taskTypes.js";
+import { saveTasksCache } from "./taskCacheService.js";
 
 const providers: TaskProvider[] = [];
 
@@ -6,7 +7,7 @@ export function registerTaskProvider(provider: TaskProvider) {
   providers.push(provider);
 }
 
-export async function getAllPendingTasks(): Promise<Assignment[]> {
+export async function syncAllTasks(): Promise<TaskCache> {
   let allTasks: Assignment[] = [];
   
   for (const provider of providers) {
@@ -17,10 +18,16 @@ export async function getAllPendingTasks(): Promise<Assignment[]> {
       if (error.message !== "UNAUTHORIZED") {
         console.error(`Error fetching tasks from ${provider.name}:`, error);
       }
+      // If unauthorized, we might still want to return other providers' tasks, but throw if it's the only one
+      // For now, let it pass so it doesn't break other providers if one fails
+      if (error.message === "UNAUTHORIZED" && providers.length === 1) {
+        throw error;
+      }
     }
   }
 
-  return sortPendingAssignments(allTasks);
+  const sorted = sortPendingAssignments(allTasks);
+  return await saveTasksCache(sorted, "mixed");
 }
 
 export function sortPendingAssignments(assignments: Assignment[]): Assignment[] {
@@ -35,7 +42,9 @@ export function sortPendingAssignments(assignments: Assignment[]): Assignment[] 
   });
 }
 
-export function formatAssignmentsText(assignments: Assignment[]): string {
+export function formatAssignmentsText(cache: TaskCache, isStale: boolean = false): string {
+  const assignments = cache.items;
+  
   if (assignments.length === 0) {
     return "✅ Asik, tidak ada tugas yang belum dikerjakan!";
   }
@@ -69,6 +78,18 @@ export function formatAssignmentsText(assignments: Assignment[]): string {
     }
     text += "\n";
   });
+
+  const syncedDate = new Date(cache.syncedAt);
+  const formattedSync = syncedDate.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }) + ", " + syncedDate.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) + " WIB";
+
+  text += `\n_Terakhir sinkron: ${formattedSync}_`;
+  if (isStale) {
+    text += `. _Ketik sync classroom untuk memperbarui._`;
+  }
 
   return text.trim();
 }
